@@ -2917,12 +2917,20 @@ async function updateSketchfabByAnno(annoInput){
         return { base: 7, suffix: ["V","A","Hz","kW"] };
       }
 
-      // helper: แสดงเลขสวย ๆ เฉพาะค่าที่เป็นตัวเลข
-      const fmt = (v, suf="") => {
-        const n = parseFloat(v);
-        if (Number.isFinite(n)) return (Math.ceil(n * 100) / 100) + suf;
-        return (v ?? "ไม่พบข้อมูล"); // ถ้าไม่ใช่ตัวเลขให้คืนค่าเดิม (ไม่เติมหน่วย)
-      };
+        // helper: แสดงเลขสวย ๆ + คอมม่า + หน่วย (ปัดขึ้น 2 ตำแหน่งตามของเดิม)
+        const fmt = (v, suf = "") => {
+          const n = Number(v);
+          if (!Number.isFinite(n)) return (v ?? "ไม่พบข้อมูล");
+        
+          const ceil2 = Math.ceil(n * 100) / 100; // ปัดขึ้น 2 ตำแหน่ง
+          const formatted = new Intl.NumberFormat('en-US', {
+            // ถ้าเป็นจำนวนเต็มไม่ต้องโชว์ทศนิยม, ถ้าไม่ใช่ให้โชว์สูงสุด 2 ตำแหน่ง
+            minimumFractionDigits: Number.isInteger(ceil2) ? 0 : 0,
+            maximumFractionDigits: 2
+          }).format(ceil2);
+        
+          return suf ? `${formatted} ${suf}` : formatted;
+        };
 
       const { base, suffix } = pickIndexByCamera(cameraId);
 
